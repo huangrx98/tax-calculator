@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head>
+<html lang="zh-CN">
+<head>
 <meta charset="UTF-8">
-<meta 名字="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta 名字="theme-color" content="#F7F7F8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F7F8">
 <title>价税分离计算器</title>
 <style>
 :root{
@@ -44,12 +45,15 @@
   }
 }
 *{box-sizing:border-box}
-html,body{height:100%}
 body{
   margin:0;
   background:var(--page);
   color:var(--text);
   font:400 var(--text-body) var(--font-sans);
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  min-height:100vh;
+  min-height:100svh;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -70,7 +74,7 @@ body{
 .head{display:flex;flex-direction:column;gap:var(--spacer-4)}
 .title{font:500 var(--text-title) var(--font-sans);margin:0}
 .sub{font:400 var(--text-caption) var(--font-sans);color:var(--text-muted);margin:0}
-.inputs{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacer-16)}
+.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--spacer-16)}
 .field{display:flex;flex-direction:column;gap:var(--spacer-8)}
 .f-label{font:500 var(--text-caption) var(--font-sans);color:var(--text-muted)}
 .f-input{
@@ -85,7 +89,7 @@ body{
   outline:none;
 }
 .f-input:focus{border-color:var(--brand)}
-.results{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacer-16)}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--spacer-16)}
 .res{
   background:var(--surface-muted);
   border:1px solid var(--border);
@@ -130,8 +134,12 @@ body{
   .res-row.is-copied .ico-check{animation:pop 120ms ease}
 }
 @media (max-width:520px){
-  .inputs{grid-template-columns:1fr}
-  .results{grid-template-columns:1fr}
+  body{padding:var(--spacer-16);padding-bottom:calc(var(--spacer-16) + env(safe-area-inset-bottom))}
+  .card{padding:var(--spacer-16);gap:var(--spacer-16)}
+  .f-input{font:600 18px var(--font-mono);padding:var(--spacer-12)}
+  .res-num{font:600 20px var(--font-metric)}
+  .res-upper{font:400 13px var(--font-sans)}
+  .res-row{padding:var(--spacer-8)}
 }
 </style>
 </head>
@@ -155,33 +163,33 @@ body{
     <div class="res res-focus" data-res="net">
       <div class="res-top">
         <span class="res-label">不含税价</span>
-        <span class="res-hint" data-hint="">点击复制</span>
+        <span class="res-hint" data-hint>点击复制</span>
       </div>
       <div class="res-row" data-copy="100.00" role="button" tabindex="0" aria-label="复制不含税价数字">
         <span class="res-num" data-role="netNum">¥100.00</span>
-        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
-        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"/></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </div>
       <div class="res-row" data-copy="壹佰元整" role="button" tabindex="0" aria-label="复制不含税价大写">
         <span class="res-upper" data-role="netUpper">壹佰元整</span>
-        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
-        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"/></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </div>
     </div>
     <div class="res" data-res="tax">
       <div class="res-top">
         <span class="res-label">税费</span>
-        <span class="res-hint" data-hint="">点击复制</span>
+        <span class="res-hint" data-hint>点击复制</span>
       </div>
       <div class="res-row" data-copy="13.00" role="button" tabindex="0" aria-label="复制税费数字">
         <span class="res-num" data-role="taxNum">¥13.00</span>
-        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
-        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"/></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </div>
       <div class="res-row" data-copy="壹拾叁元整" role="button" tabindex="0" aria-label="复制税费大写">
         <span class="res-upper" data-role="taxUpper">壹拾叁元整</span>
-        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
-        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"/></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </div>
     </div>
   </div>
@@ -303,6 +311,5 @@ body{
   compute();
 })();
 </script>
-
-
-</body></html>
+</body>
+</html>
