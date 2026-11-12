@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F7F8">
+<title>价税分离计算器</title>
+<style>
+:root{
+  color-scheme:light;
+  --surface:#F7F7F8;
+  --surface-muted:#EFEFF2;
+  --page:#FFFFFF;
+  --text:#171717;
+  --text-muted:#52525B;
+  --border:rgba(23,23,23,.12);
+  --brand:#0FDC78;
+  --brand-text:#004D26;
+  --radius:8px;
+  --radius-card:12px;
+  --spacer-4:4px;
+  --spacer-8:8px;
+  --spacer-12:12px;
+  --spacer-16:16px;
+  --spacer-20:20px;
+  --spacer-24:24px;
+  --font-sans:"SF Pro Text","PingFang SC",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-metric:"Inter","SF Pro Text","PingFang SC",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --text-caption:12px/18px;
+  --text-body:14px/20px;
+  --text-title:16px/24px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --surface:#171717;
+    --surface-muted:#262626;
+    --page:#0D0D0D;
+    --text:#E5E5E5;
+    --text-muted:#A1A1AA;
+    --border:rgba(229,229,229,.12);
+    --brand:#32F08C;
+    --brand-text:#E5FFF2;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--page);
+  color:var(--text);
+  font:400 var(--text-body) var(--font-sans);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:var(--spacer-24);
+  padding-bottom:calc(var(--spacer-24) + env(safe-area-inset-bottom));
+}
+.card{
+  width:100%;
+  max-width:560px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding:var(--spacer-20);
+  display:flex;
+  flex-direction:column;
+  gap:var(--spacer-16);
+}
+.head{display:flex;flex-direction:column;gap:var(--spacer-4)}
+.title{font:500 var(--text-title) var(--font-sans);margin:0}
+.sub{font:400 var(--text-caption) var(--font-sans);color:var(--text-muted);margin:0}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacer-16)}
+.field{display:flex;flex-direction:column;gap:var(--spacer-8)}
+.f-label{font:500 var(--text-caption) var(--font-sans);color:var(--text-muted)}
+.f-input{
+  width:100%;
+  background:var(--surface-muted);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:var(--spacer-8) var(--spacer-12);
+  color:var(--text);
+  font:600 var(--text-title) var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  outline:none;
+}
+.f-input:focus{border-color:var(--brand)}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacer-16)}
+.res{
+  background:var(--surface-muted);
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding:var(--spacer-16);
+  display:flex;
+  flex-direction:column;
+  gap:var(--spacer-8);
+}
+.res-focus{border-color:var(--brand)}
+.res-top{display:flex;align-items:center;justify-content:space-between;gap:var(--spacer-8)}
+.res-label{font:500 var(--text-caption) var(--font-sans);color:var(--text-muted)}
+.res-focus .res-label{color:var(--brand-text)}
+.res-hint{font:400 var(--text-caption) var(--font-sans);color:var(--text-muted);opacity:.75}
+.res.has-copied .res-hint{color:var(--brand-text);opacity:1}
+.res-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--spacer-8);
+  border-radius:var(--radius);
+  padding:var(--spacer-4) var(--spacer-8);
+  margin-left:calc(-1 * var(--spacer-8));
+  margin-right:calc(-1 * var(--spacer-8));
+  cursor:pointer;
+  border:1px solid transparent;
+  -webkit-tap-highlight-color:transparent;
+}
+.res-row:focus-visible{outline:none;border-color:var(--brand)}
+.res-num{font:600 var(--text-title) var(--font-metric);font-variant-numeric:tabular-nums}
+.res-focus .res-num{color:var(--brand-text)}
+.res-upper{font:400 var(--text-caption) var(--font-sans);color:var(--text-muted);word-break:break-all}
+.ico{width:14px;height:14px;flex:none;color:var(--text-muted)}
+.res-row .ico-check{display:none}
+.res-row.is-copied .ico-copy{display:none}
+.res-row.is-copied .ico-check{display:block}
+.res-row.is-copied .ico{color:var(--brand-text)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:no-preference){
+  .res-row{transition:background 120ms ease}
+  .res-row:hover{background:var(--surface)}
+  .res-row.is-copied .ico-check{animation:pop 120ms ease}
+}
+@media (max-width:520px){
+  .inputs{grid-template-columns:1fr}
+  .results{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <h1 class="title">价税分离计算器</h1>
+    <p class="sub">输入含税价与税率，自动算出不含税价与税费；数字、大写均可点击复制（复制不带 ¥ 符号）</p>
+  </div>
+  <div class="inputs">
+    <label class="field">
+      <span class="f-label">含税价（元）</span>
+      <input class="f-input" data-role="gross" type="number" inputmode="decimal" step="0.01" min="0" value="113.00" aria-label="含税价">
+    </label>
+    <label class="field">
+      <span class="f-label">税率（%）</span>
+      <input class="f-input" data-role="rate" type="number" inputmode="decimal" step="0.01" min="0" value="13" aria-label="税率百分比">
+    </label>
+  </div>
+  <div class="results">
+    <div class="res res-focus" data-res="net">
+      <div class="res-top">
+        <span class="res-label">不含税价</span>
+        <span class="res-hint" data-hint="">点击复制</span>
+      </div>
+      <div class="res-row" data-copy="100.00" role="button" tabindex="0" aria-label="复制不含税价数字">
+        <span class="res-num" data-role="netNum">¥100.00</span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+      </div>
+      <div class="res-row" data-copy="壹佰元整" role="button" tabindex="0" aria-label="复制不含税价大写">
+        <span class="res-upper" data-role="netUpper">壹佰元整</span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+      </div>
+    </div>
+    <div class="res" data-res="tax">
+      <div class="res-top">
+        <span class="res-label">税费</span>
+        <span class="res-hint" data-hint="">点击复制</span>
+      </div>
+      <div class="res-row" data-copy="13.00" role="button" tabindex="0" aria-label="复制税费数字">
+        <span class="res-num" data-role="taxNum">¥13.00</span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+      </div>
+      <div class="res-row" data-copy="壹拾叁元整" role="button" tabindex="0" aria-label="复制税费大写">
+        <span class="res-upper" data-role="taxUpper">壹拾叁元整</span>
+        <span class="ico ico-copy" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"></rect><path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3A1.6 1.6 0 0 0 3.6 10.5h1.9" stroke-linecap="round"></path></svg></span>
+        <span class="ico ico-check" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const grossEl = document.querySelector('[data-role="gross"]');
+  const rateEl = document.querySelector('[data-role="rate"]');
+  const netNum = document.querySelector('[data-role="netNum"]');
+  const netUp = document.querySelector('[data-role="netUpper"]');
+  const taxNum = document.querySelector('[data-role="taxNum"]');
+  const taxUp = document.querySelector('[data-role="taxUpper"]');
+
+  function rmbUpper(input){
+    if(!isFinite(input)) return '—';
+    const digit = ['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];
+    const fraction = ['角','分'];
+    const unit = [['元','万','亿'],['','拾','佰','仟']];
+    let n = Math.abs(input);
+    let s = '';
+    for(let i=0;i<fraction.length;i++){
+      s += (digit[Math.floor(n*10*Math.pow(10,i))%10] + fraction[i]).replace(/零./,'');
+    }
+    s = s || '整';
+    n = Math.floor(n);
+    for(let i=0;i<unit[0].length && n>0;i++){
+      let p = '';
+      for(let j=0;j<unit[1].length && n>0;j++){
+        p = digit[n%10] + unit[1][j] + p;
+        n = Math.floor(n/10);
+      }
+      s = p.replace(/(零.)*零$/,'').replace(/^$/,'零') + unit[0][i] + s;
+    }
+    return s.replace(/(零.)*零元/,'元').replace(/(零.)+/g,'零').replace(/^整$/,'零元整');
+  }
+  function money(v){ return '¥' + v.toFixed(2); }
+  function setRow(row, payload){ row.setAttribute('data-copy', payload); }
+
+  function compute(){
+    const gross = parseFloat(grossEl.value);
+    const pct = parseFloat(rateEl.value);
+    const netRows = document.querySelectorAll('[data-res="net"] .res-row');
+    const taxRows = document.querySelectorAll('[data-res="tax"] .res-row');
+    if(!isFinite(gross) || !isFinite(pct) || (1 + pct/100) <= 0){
+      netNum.textContent = '¥—'; netUp.textContent = '—';
+      taxNum.textContent = '¥—'; taxUp.textContent = '—';
+      setRow(netRows[0],'—'); setRow(netRows[1],'—');
+      setRow(taxRows[0],'—'); setRow(taxRows[1],'—');
+      return;
+    }
+    const rate = pct/100;
+    const net = Math.round((gross/(1+rate))*100)/100;
+    const tax = Math.round((gross-net)*100)/100;
+    const netU = rmbUpper(net), taxU = rmbUpper(tax);
+    netNum.textContent = money(net); netUp.textContent = netU;
+    taxNum.textContent = money(tax); taxUp.textContent = taxU;
+    setRow(netRows[0], net.toFixed(2)); setRow(netRows[1], netU);
+    setRow(taxRows[0], tax.toFixed(2)); setRow(taxRows[1], taxU);
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text).catch(function(){ legacyCopy(text); });
+    }
+    legacyCopy(text);
+    return Promise.resolve();
+  }
+  function legacyCopy(text){
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e){}
+  }
+
+  let timer = null;
+  let copiedRow = null;
+  let copiedRes = null;
+  function flashHint(res, row){
+    if(!res || !row) return;
+    const hint = res.querySelector('[data-hint]');
+    if(copiedRow) copiedRow.classList.remove('is-copied');
+    if(copiedRes) copiedRes.classList.remove('has-copied');
+    row.classList.add('is-copied');
+    res.classList.add('has-copied');
+    if(hint) hint.textContent = '已复制';
+    copiedRow = row; copiedRes = res;
+    if(timer) clearTimeout(timer);
+    timer = setTimeout(function(){
+      if(copiedRow) copiedRow.classList.remove('is-copied');
+      if(copiedRes) copiedRes.classList.remove('has-copied');
+      if(hint) hint.textContent = '点击复制';
+      copiedRow = null; copiedRes = null;
+    }, 1200);
+  }
+
+  function handleRow(row){
+    const text = row.getAttribute('data-copy');
+    if(!text || text === '—') return;
+    copyText(text);
+    flashHint(row.closest('.res'), row);
+  }
+
+  grossEl.addEventListener('input', compute);
+  rateEl.addEventListener('input', compute);
+  document.querySelectorAll('.res-row').forEach(function(row){
+    row.addEventListener('click', function(){ handleRow(row); });
+    row.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); handleRow(row); }
+    });
+  });
+
+  compute();
+})();
+</script>
+
+
+</body></html>
